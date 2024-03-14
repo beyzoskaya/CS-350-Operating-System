@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h> // Include the header for boolean type
 #include <time.h>
 
 #define MAX_CHOICES 5
@@ -9,6 +10,15 @@ struct FoodChoice {
     char name[20];
     int score;
 };
+
+void initializeMenu(struct FoodChoice menu[]) {
+    char *foodNames[MAX_CHOICES] = {"Kebab", "Burger", "Pasta", "Lahmacun", "Salad"};
+
+    for (int i = 0; i < MAX_CHOICES; i++) {
+        strcpy(menu[i].name, foodNames[i]);
+        menu[i].score = 0;
+    }
+}
 
 void makeChoices(struct FoodChoice menu[], int num_people) {
     for (int i = 0; i < num_people; i++) {
@@ -27,13 +37,12 @@ void makeChoices(struct FoodChoice menu[], int num_people) {
                 break;
             } else {
                 printf("Invalid choice. Please enter a number between 1 and 5.\n");
-                j--; // Decrement j to re-enter the choice
+                j--;
             }
         }
 
         for (int j = 0; j < MAX_CHOICES; j++) {
             if (choices[j] >= 1 && choices[j] <= 5) {
-                // Assign score based on order of preference
                 menu[choices[j] - 1].score += (MAX_CHOICES - j);
             }
         }
@@ -42,30 +51,29 @@ void makeChoices(struct FoodChoice menu[], int num_people) {
     }
 }
 
-// Function to print the shortlist of preferences above a threshold
 void printShortlist(struct FoodChoice menu[], int threshold) {
     printf("Scores for each item:\n");
     for (int i = 0; i < MAX_CHOICES; i++) {
         printf("%s: %d\n", menu[i].name, menu[i].score);
     }
 
+    // Above threshold ones are selected in the first round end
     printf("Shortlist of preferences above threshold %d:\n", threshold);
-    int no_choices_above_threshold = 1;
+    bool no_choices_above_threshold = true; // Use boolean type
 
     for (int i = 0; i < MAX_CHOICES; i++) {
         if (menu[i].score > threshold) {
             printf("%s: %d\n", menu[i].name, menu[i].score);
-            no_choices_above_threshold = 0;
+            no_choices_above_threshold = false; // Change to false if a choice is above threshold
         }
     }
 
-    if (no_choices_above_threshold) {
+    if (no_choices_above_threshold) { // Use true/false values directly
         printf("You are eating at home/dorm today!\n");
         exit(0);
     }
 }
 
-// Function to play the second round
 void playSecondRound(struct FoodChoice menu[], int threshold, int num_people) {
     printf("Second round: Choose from shortlist\n");
 
@@ -82,8 +90,7 @@ void playSecondRound(struct FoodChoice menu[], int threshold, int num_people) {
     if (num_above_threshold > 1) {
         printf("Another round is needed.\n");
 
-        // Each player selects from items above threshold
-        int selected[MAX_CHOICES] = {0}; // Counter for each item
+        int selected[MAX_CHOICES] = {0};
         for (int i = 0; i < num_people; i++) {
             printf("Player %d, choose from the following items:\n", i + 1);
             for (int j = 0; j < num_above_threshold; j++) {
@@ -97,7 +104,6 @@ void playSecondRound(struct FoodChoice menu[], int threshold, int num_people) {
             selected[choice - 1]++;
         }
 
-        // Find the most selected item
         int max_selected = 0;
         int max_selected_index = 0;
         for (int i = 0; i < num_above_threshold; i++) {
@@ -106,20 +112,30 @@ void playSecondRound(struct FoodChoice menu[], int threshold, int num_people) {
                 max_selected_index = i;
             }
         }
-        printf("Item with the max selection in the second round: %s\n", above_threshold[max_selected_index].name);
+
+        int winners = 0;
+        for (int i = 0; i < num_above_threshold; i++) {
+            if (selected[i] == max_selected) {
+                winners++;
+            }
+        }
+
+        if (winners == 1) {
+            printf("Item with the max selection in the second round: %s\n", above_threshold[max_selected_index].name);
+        } else {
+            printf("There is no clear winner. Randomly selecting from the above threshold items.\n");
+            int random_index = rand() % num_above_threshold;
+            printf("Randomly selected item: %s\n", above_threshold[random_index].name);
+        }
     } else {
         printf("Only one item above threshold. No need for another round.\n");
     }
 }
 
 int main() {
-    struct FoodChoice menu[MAX_CHOICES] = {
-        {"Kebab", 0},
-        {"Burger", 0},
-        {"Pasta", 0},
-        {"Lahmacun", 0},
-        {"Salad", 0}
-    };
+    struct FoodChoice menu[MAX_CHOICES];
+    
+    initializeMenu(menu);
 
     int num_people;
     int threshold;
@@ -128,7 +144,6 @@ int main() {
     printf("Enter the number of people: ");
     scanf("%d", &num_people);
 
-    // Set threshold based on the number of people
     if (num_people == 2) {
         threshold = 5;
     } else if (num_people == 3) {
@@ -136,16 +151,13 @@ int main() {
     } else if (num_people == 4) {
         threshold = 12;
     } else {
-        threshold = 15; // Change threshold for other numbers of people
+        threshold = 15;
     }
 
-    // First round: Make choices
     makeChoices(menu, num_people);
 
-    // Print shortlist of preferences
     printShortlist(menu, threshold);
 
-    // Second round: Choose from shortlist
     playSecondRound(menu, threshold, num_people);
 
     return 0;
