@@ -1,0 +1,1 @@
+cmd_/home/emir/Desktop/beyza_350/hw1/hello_driver.ko := ld -r  -m elf_x86_64 -z noexecstack   --build-id=sha1  -T scripts/module.lds -o /home/emir/Desktop/beyza_350/hw1/hello_driver.ko /home/emir/Desktop/beyza_350/hw1/hello_driver.o /home/emir/Desktop/beyza_350/hw1/hello_driver.mod.o;  true

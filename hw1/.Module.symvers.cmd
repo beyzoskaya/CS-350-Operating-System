@@ -1,0 +1,1 @@
+cmd_/home/emir/Desktop/beyza_350/hw1/Module.symvers := sed 's/\.ko$$/\.o/' /home/emir/Desktop/beyza_350/hw1/modules.order | scripts/mod/modpost -m -a  -o /home/emir/Desktop/beyza_350/hw1/Module.symvers -e -i Module.symvers   -T -
