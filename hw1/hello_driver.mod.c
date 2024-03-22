@@ -15,9 +15,6 @@ __visible struct module __this_module
 __section(".gnu.linkonce.this_module") = {
 	.name = KBUILD_MODNAME,
 	.init = init_module,
-#ifdef CONFIG_MODULE_UNLOAD
-	.exit = cleanup_module,
-#endif
 	.arch = MODULE_ARCH_INIT,
 };
 
@@ -36,4 +33,4 @@ __used __section("__versions") = {
 MODULE_INFO(depends, "");
 
 
-MODULE_INFO(srcversion, "15478B6A9B3A43D0C52DD92");
+MODULE_INFO(srcversion, "944396C45876853B6EEAE52");

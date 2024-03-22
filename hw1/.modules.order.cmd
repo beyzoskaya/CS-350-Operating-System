@@ -1,1 +1,1 @@
-cmd_/home/emir/Desktop/beyza_350/hw1/modules.order := {   echo /home/emir/Desktop/beyza_350/hw1/hello_driver.ko; :; } | awk '!x[$$0]++' - > /home/emir/Desktop/beyza_350/hw1/modules.order
+cmd_/home/emir/Desktop/beyza_350/cs350-hw1-S021747/modules.order := {   echo /home/emir/Desktop/beyza_350/cs350-hw1-S021747/hello_driver.ko; :; } | awk '!x[$$0]++' - > /home/emir/Desktop/beyza_350/cs350-hw1-S021747/modules.order
