@@ -1,2 +1,2 @@
-/home/emir/Desktop/beyza_350/hw1/hello_driver.o
+/home/emir/Desktop/beyza_350/cs350-hw1-S021747/hello_driver.o
 

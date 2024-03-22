@@ -1,1 +1,1 @@
-cmd_/home/emir/Desktop/beyza_350/hw1/Module.symvers := sed 's/\.ko$$/\.o/' /home/emir/Desktop/beyza_350/hw1/modules.order | scripts/mod/modpost -m -a  -o /home/emir/Desktop/beyza_350/hw1/Module.symvers -e -i Module.symvers   -T -
+cmd_/home/emir/Desktop/beyza_350/cs350-hw1-S021747/Module.symvers := sed 's/\.ko$$/\.o/' /home/emir/Desktop/beyza_350/cs350-hw1-S021747/modules.order | scripts/mod/modpost -m -a  -o /home/emir/Desktop/beyza_350/cs350-hw1-S021747/Module.symvers -e -i Module.symvers   -T -
