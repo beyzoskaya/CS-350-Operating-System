@@ -4,6 +4,49 @@
 #include <stdbool.h>
 #include <time.h>
 
+/*
+Example play case:
+
+Play What to eat today
+Enter the number of people to play: 2
+Player 1, enter your choices from the menu:
+1-Kebab, 2-Burger, 3-Pasta, 4-Lahmacun, 5-Salad
+Enter choice 1 (or 0 to not select no more item): 1
+Enter choice 2 (or 0 to not select no more item): 5
+Enter choice 3 (or 0 to not select no more item): 4
+Enter choice 4 (or 0 to not select no more item): 0
+Player 1, made 3 choices.
+
+Player 2, enter your choices from the menu:
+1-Kebab, 2-Burger, 3-Pasta, 4-Lahmacun, 5-Salad
+Enter choice 1 (or 0 to not select no more item): 2
+Enter choice 2 (or 0 to not select no more item): 1
+Enter choice 3 (or 0 to not select no more item): 3
+Enter choice 4 (or 0 to not select no more item): 4
+Enter choice 5 (or 0 to not select no more item): 5
+Player 2, made 5 choices.
+
+Scores for each item:
+Kebab: 9
+Burger: 5
+Pasta: 3
+Lahmacun: 5
+Salad: 5
+
+Shortlist of preferences above threshold 5:
+Kebab: 9
+
+Second round: Choose from shortlist
+Only one item above threshold. No need for another round: Kebab (Score: 9)
+Scores for each item after the second round:
+Kebab: 9
+Burger: 5
+Pasta: 3
+Lahmacun: 5
+Salad: 5
+*/
+
+
 // we have 5 items inside the menu
 #define MAX_CHOICES 5
 
@@ -87,78 +130,122 @@ void printShortlist(struct FoodChoice menu[], int threshold) {
     }
 }
 
+// Print function for see items score after second round
+void printSecondRoundShortlist(struct FoodChoice menu[]) {
+    printf("Scores for each item after the second round:\n");
+    for (int i = 0; i < MAX_CHOICES; i++) {
+        printf("%s: %d\n", menu[i].name, menu[i].score);
+    }
+}
+
 // Based on the first round result, there can be possibility to play second round
 void playSecondRound(struct FoodChoice menu[], int threshold, int num_people) {
     printf("Second round: Choose from shortlist\n");
 
     int num_above_threshold = 0;
-    int max_selected_index = 0; 
+    int max_selected_index = 0;
 
     // Look for the number of items above the threshold for selection later
     for (int i = 0; i < MAX_CHOICES; i++) {
         if (menu[i].score > threshold) {
             num_above_threshold++;
-            max_selected_index = i; // To print out the selected item if there is no need for second round to play
+            max_selected_index = i; // Use later as a no need for second round playing, directly print the item
         }
     }
-    
+
     // If there are more than 1 item above the threshold after the first round, need to play the second round
+    // Otherwise one item above the threshold is order
     if (num_above_threshold > 1) {
         printf("Another round is needed.\n");
 
-        int selected[MAX_CHOICES] = {0};
-        // Ask everyone to play one by one for selection
-        for (int i = 0; i < num_people; i++) {
-            printf("Player %d, choose from the following items:\n", i + 1);
-            // Select from the items in the menu (at most 5 items)
-            for (int j = 0; j < MAX_CHOICES; j++) {
-                // Print the item if it is above the threshold as a list
-                if (menu[j].score > threshold) {
-                    printf("%d. %s\n", j + 1, menu[j].name);
-                }
+        // Shortlist options above the threshold
+        printf("Shortlist of preferences above threshold %d:\n", threshold);
+        for (int i = 0; i < MAX_CHOICES; i++) {
+            if (menu[i].score > threshold) {
+                printf("%d. %s (Score: %d)\n", i + 1, menu[i].name, menu[i].score);
             }
-
-            int choice;
-            do {
-                printf("Enter your choice: ");
-                scanf("%d", &choice);
-            // while the players make a choice, if the choice is valid and more than threshold 
-            } while (choice < 1 || choice > num_above_threshold);
-            // increment the array of selected
-            selected[choice - 1]++;
         }
 
-        // Update the maximum scored selected item to find preferable item for second round 
-        int max_selected = 0;
+        // Array of player choices initialization
+        int choices[MAX_CHOICES][MAX_CHOICES] = {0}; // Keep which player select which item as a 2D array
+
+        // Each player plays like choice from shorlit with their prefered order
+        for (int i = 0; i < num_people; i++) {
+            printf("Player %d, order your choices from the shortlist (Enter 0 to finish):\n", i + 1);
+
+            int choice;
+            int order = 1;
+            do {
+                printf("Enter your choice %d: ", order);
+                scanf("%d", &choice);
+
+                if (choice >= 1 && choice <= MAX_CHOICES) {
+                    choices[i][choice - 1] = order;
+                    order++;
+                }
+            } while (choice != 0 && order <= num_above_threshold);
+
+            printf("\n");
+        }
+
+        // Score update based on second round choices
         for (int i = 0; i < MAX_CHOICES; i++) {
-            // If the item has a score more than threshold and the item has score more than lastly max one, update the max selected item
-            if (menu[i].score > threshold && selected[i] > max_selected) {
-                max_selected = selected[i];
+            for (int j = 0; j < num_people; j++) {
+                if (choices[j][i] > 0) {
+                    // Score update with rule of order line like in first round
+                    menu[i].score += MAX_CHOICES - choices[j][i] + 1;
+                }
+            }
+        }
+
+        int max_score = 0;
+        for (int i = 0; i < MAX_CHOICES; i++) {
+            if (menu[i].score > max_score) {
+                max_score = menu[i].score;
                 max_selected_index = i;
             }
         }
 
-        // Control for how many selected as a max scored item
-        int selected_count = 0;
+        int winners = 0;
         for (int i = 0; i < MAX_CHOICES; i++) {
-            if (menu[i].score > threshold && selected[i] == max_selected) {
-                selected_count++;
+            if (menu[i].score == max_score) {
+                winners++;
             }
         }
 
-        // Look for how many selected item as a max to end the game
-        if (selected_count == 1) {
-            printf("Item with the max selection in the second round: %s\n", menu[max_selected_index].name);
-        // If there is no selection with max score after second round, find with random selection
+        if(winners == 1) {
+            printf("Selected item with max score after second round: %s (Score: %d)\n", menu[max_selected_index].name, menu[max_selected_index].score);
+        
+        // If number of winners more than 1 than random selection is needed or we can directly print this:
+        // printf("You are eating at home/dorm today!\n");
+        /*
+        If you don't want random choice, you can change the part with 
+
+            printf("You are eating at home/dorm today!\n");
+            exit(0);
+        */
+
         } else {
-            printf("There is no maximum scored item so random selection is needed. Randomly selecting from the above threshold items.\n");
-            int random_index = rand() % num_above_threshold;
-            printf("Randomly selected item: %s\n", menu[random_index].name);
+            printf("There is no maximum scored item. Randomly selecting from the above threshold items.\n");
+            int above_threshold_indices[MAX_CHOICES];
+            int num_items_above_threshold = 0;
+            for (int i = 0; i < MAX_CHOICES; i++) {
+                if (menu[i].score > threshold) {
+                    above_threshold_indices[num_items_above_threshold] = i;
+                    num_items_above_threshold++;
+            }
         }
-    // After the first round, if there is one item above the threshold no need for second round
-    } else {
-        printf("Only one item above threshold. No need for another round: %s\n", menu[max_selected_index].name);
-    }
+            int random_index = rand() % num_items_above_threshold;
+            printf("Randomly selected item: %s\n", menu[above_threshold_indices[random_index]].name);
+            
+        }
+        
+
+    // No need to play second round, only one item above threshold
+    } else if (num_above_threshold == 1) {
+        printf("Only one item above threshold. No need for another round: %s (Score: %d)\n", menu[max_selected_index].name, menu[max_selected_index].score);
+    } 
+
 }
 
 
@@ -174,7 +261,13 @@ int main() {
     printf("Enter the number of people to play: ");
     scanf("%d", &num_people);
 
+    if(num_people < 2){
+        printf("Play with more than 1 person");
+        exit(0);
+    }
+
     // Give some thresholds based on number of peoples to play (I am logically select the thresholds)
+    // You can change the threshold values based on your necessities
     if (num_people == 2) {
         threshold = 5;
     } else if (num_people == 3) {
@@ -190,6 +283,9 @@ int main() {
     printShortlist(menu, threshold);
 
     playSecondRound(menu, threshold, num_people);
+
+    // Print each item's score after game is finish
+    printSecondRoundShortlist(menu);
 
     return 0;
 }
