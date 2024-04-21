@@ -53,8 +53,21 @@ void put_gloves(int apprentice_id) {
 
 void remove_gloves(int apprentice_id) {
     // Implement a mutex unlock mechanism for gloves here
-    pthread_mutex_unlock(&gloveMutex[apprentice_id]); // glove 1 to unwear from apprentice
-    pthread_mutex_unlock(&gloveMutex[(apprentice_id + 1) % APPRENTICE_COUNT]  ); // glove 2 to unwear from same apprentice
+
+    //pthread_mutex_unlock(&gloveMutex[apprentice_id]); // glove 1 to unwear from apprentice
+    //pthread_mutex_unlock(&gloveMutex[(apprentice_id + 1) % APPRENTICE_COUNT]  ); // glove 2 to unwear from same apprentice
+
+    int first_glove = apprentice_id;
+    int second_glove = (apprentice_id + 1) % APPRENTICE_COUNT;
+
+    if (first_glove > second_glove) {
+        int temp = first_glove;
+        first_glove = second_glove;
+        second_glove = temp;
+    }
+    // For prevent deadlock unlock the gloves in same order as locked them
+    pthread_mutex_unlock(&gloveMutex[first_glove]); 
+    pthread_mutex_unlock(&gloveMutex[second_glove]);
     printf("Apprentice %d has removed gloves\n", apprentice_id);
 }
 
