@@ -12,11 +12,11 @@
 #define PORT 8888
 //#define IDLE_TIMEOUT_SECONDS 120 // 2 minutes keep server awake it is optional with my thoughts
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; // mutex variable to lock and unlock for chatting
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER; // conditional variable to keep track of clients waiting or can be chatting
 
 int active_client_count = 0; // need to keep track of number of clients to chat or waited
-int client_ids[MAX_CLIENTS];
+int client_ids[MAX_CLIENTS]; // array for storing client ids
 int client_sockets[MAX_CLIENTS]; // client number of sockets need to be created to communicate with each client
 //time_t last_client_disconnect_time = 0;
 
@@ -27,9 +27,9 @@ int assign_client_id();
 
 int main() {
     int server_socket, client_socket; // create both server and client socket variables to use after
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t client_addr_len = sizeof(client_addr);
-    pthread_t thread_id;
+    struct sockaddr_in server_addr, client_addr; // both client and server addresses structure initialization
+    socklen_t client_addr_len = sizeof(client_addr); // Lenght of client address
+    pthread_t thread_id; // thread 
 
     // Creating socket for server
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -39,10 +39,10 @@ int main() {
     }
 
     // Creating server address features
-    memset(&server_addr, 0, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr)); // clear server address 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = INADDR_ANY; // Accepting connections from addresses (any of them)
+    server_addr.sin_port = htons(PORT); // Converting port number 
 
     // Binding socket 
     if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
@@ -68,7 +68,7 @@ int main() {
             continue;
         }
 
-        pthread_mutex_lock(&mutex);
+        pthread_mutex_lock(&mutex); // Locked the mutex for common resource
         if (active_client_count >= MAX_CLIENTS) {
             printf("Maximum client limit reached. Connection cannot be initialized.\n");
             close(client_socket);
@@ -76,7 +76,7 @@ int main() {
             pthread_create(&thread_id, NULL, client_thread, (void*)&client_socket);
             pthread_detach(thread_id); 
         }
-        pthread_mutex_unlock(&mutex);
+        pthread_mutex_unlock(&mutex); // Unlock the mutex for another client can lock or use it
     }
 
 
@@ -107,7 +107,7 @@ void* client_thread(void* arg) {
 
     if (active_client_count == MAX_CLIENTS) {
         printf("Client %d is waiting for an available slot.\n", client_id);
-        pthread_cond_wait(&cond, &mutex); 
+        pthread_cond_wait(&cond, &mutex);  // Waiting for available slot with conditional wait variable
     }
     pthread_mutex_unlock(&mutex);
 
@@ -117,10 +117,12 @@ void* client_thread(void* arg) {
     active_client_count = active_client_count -1;
 
     if (active_client_count == MAX_CLIENTS - 1) {
-        pthread_cond_signal(&cond); 
+        pthread_cond_signal(&cond); // Signaling for waiting client to connect
         printf("A waiting client can now connect.\n");
     }
 
+    // Both client ids and sockets are shifted
+    // When a client disconnect, no need for socket for that client and specific id
     for (int i = client_id; i < active_client_count; i++) {
         client_ids[i] = client_ids[i + 1];
         client_sockets[i] = client_sockets[i + 1];
@@ -138,13 +140,14 @@ void* client_thread(void* arg) {
 }
 int assign_client_id() {
     static int next_client_id = 0;
-    return next_client_id++;
+    return next_client_id++; // Increment for next client's id
 }
 
 void handle_client(int client_socket, int client_id) {
-    char buffer[BUFFER_SIZE];
-    ssize_t bytes_received;
+    char buffer[BUFFER_SIZE]; // Buffer for messages which get from client
+    ssize_t bytes_received; // AMount of bytes received from message
 
+    // Continue receiving message until client disconnects
     while ((bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0)) > 0) {
         buffer[bytes_received] = '\0';
         printf("Client %d says: %s", client_id, buffer);

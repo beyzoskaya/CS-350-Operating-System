@@ -55,6 +55,7 @@ void *handle_client_connection(void *arg) {
         perror("Error receiving data from client");
     }
 
+
     // Disconnected client removed from a client_sockets array
     for (int i = 0; i < num_clients; i++) {
         if (client_sockets[i] == client_socket) {
@@ -71,7 +72,7 @@ void *handle_client_connection(void *arg) {
 }
 
 // Server socket also closing after all the client sockets shuted down
-void sigint_handler(int signum) {
+void sigint_handler() {
     printf("\nServer shutting down...\n");
 
     for (int i = 0; i < num_clients; i++) {
@@ -121,6 +122,8 @@ int main() {
     sa.sa_handler = sigint_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
+
+
     if (sigaction(SIGINT, &sa, NULL) == -1) {
         perror("Error setting up SIGINT handler");
         exit(EXIT_FAILURE);

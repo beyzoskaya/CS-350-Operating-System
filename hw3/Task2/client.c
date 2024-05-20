@@ -18,9 +18,9 @@ void* receive_messages(void* arg);
 
 int main() {
     struct sockaddr_in server_address;
-    char message[MAX_MESSAGE_SIZE];
+    char message[MAX_MESSAGE_SIZE]; // Buffer for keeping inputs
 
-    // Create socket
+    // Creating socket for client
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket == -1) {
         perror("Failed to create socket");
@@ -28,30 +28,30 @@ int main() {
     }
     printf("Socket created\n");
 
-    // Set server address
-    server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    // Initialize server address features
+    server_address.sin_addr.s_addr = inet_addr("127.0.0.1"); // specific server address
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(PORT);
 
-    // Connect to the server
+    // Connecting to server with server address if less than 0 meaning there is a problem while connection
     if (connect(client_socket, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
         perror("Connection failed");
         return 1;
     }
     printf("Connected to server\n");
 
-    // Set up signal handler for chat duration
+    // Signal creation for keep track of chat duration as 10 sec
     signal(SIGALRM, signal_handler);
-    alarm(CHAT_DURATION);
+    alarm(CHAT_DURATION); // set an alarm
 
-    // Create thread to receive messages from server
+    // Thread for getting messages from client
     pthread_t receiver_thread;
     if (pthread_create(&receiver_thread, NULL, receive_messages, NULL) < 0) {
         perror("Failed to create receiver thread");
         return 1;
     }
 
-    // Send messages to the server
+    // Looping for messages to access from server
     while (1) {
         printf("Enter message: ");
         fgets(message, sizeof(message), stdin);
@@ -64,18 +64,20 @@ int main() {
         }
     }
 
-    close(client_socket);
+    close(client_socket); // closing client socket after disconnect
     return 0;
 }
 
+// Handling signal for keep track of chat duration
 void signal_handler(int signum) {
     if (signum == SIGALRM) {
-        printf("Chat duration finished. Closing the connection.\n");
+        printf("Chat duration finished.\n");
         close(client_socket);
         exit(0);
     }
 }
 
+// Receiving messages from client socket to server
 void* receive_messages(void* arg) {
     char response[MAX_MESSAGE_SIZE];
 
