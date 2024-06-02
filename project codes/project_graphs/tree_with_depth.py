@@ -35,6 +35,7 @@ def plot_directory_tree(root_directory, depth, max_children=5):
     plt.savefig('directory_tree_max_children.png')
     plt.show()
 
+# Change the number of children and depth for your purpose 
 root_directory = '/'  
 depth = 2 
 max_children = 5 

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Load the data
+# This is the data came from Mac File system size's one by one 
 file_sizes = np.loadtxt('file_sizes.txt')
 
 if file_sizes.size == 0:
